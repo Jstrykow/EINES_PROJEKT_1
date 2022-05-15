@@ -146,7 +146,7 @@ def _timer_func ():
       msg.actions.append(of.ofp_action_output(port = 5))
       core.openflow.getConnection(s1_dpid).send(msg)
       turn=1
-      return
+      #return
 
   if turn==1:
       msg = of.ofp_flow_mod()
@@ -159,7 +159,7 @@ def _timer_func ():
       msg.actions.append(of.ofp_action_output(port = 6))
       core.openflow.getConnection(s1_dpid).send(msg)
       turn=2
-      return
+      #return
 
   if turn==2:
       msg = of.ofp_flow_mod()
@@ -172,7 +172,7 @@ def _timer_func ():
       msg.actions.append(of.ofp_action_output(port = 4))
       core.openflow.getConnection(s1_dpid).send(msg)
       turn=0
-      return
+      #return
 
 
 
