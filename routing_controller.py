@@ -97,7 +97,7 @@ class myproto(packet_base):
 
 class Intent():
   def __init__(self, source_host, destination_host, delay, capacity):
-    self.source_host = str(source_host)
+    self.source_host = source_host
     self.destination_host = destination_host
     self.delay = delay
     self.capacity = capacity
@@ -117,17 +117,21 @@ class Intent():
     msg = "Intend delay %d" % (self.delay)
     return msg
 
-intent1 = Intent('s1', 's3', 200, 100)
-intent2 = Intent("s1", "s2", 190, 100)
-intents = [intent1, intent2]
+# poprawic od hostow
+intent1 = Intent("h1", "h4", 300, 100)
+intent2 = Intent("h1", "h6", 90, 100)
+intent3 = Intent("h1", "h4", 63, 100)
+intent4 = Intent("h1", "h5", 30, 100)
+intents = [intent1, intent2, intent3, intent4]
 
 
 
 class RoutingController():
   def __init__(self):
     self.intents = []
-    self.links_state = self.get_state_of_links # dict "link_name" : [delay, flow_number, packet_receives]
+    self.links_state = self.get_state_of_links() # dict "link_name" : [delay,packet_receives]
     self.number_of_flows = [0, 0, 0] # s2, s3, s4
+    #self.routing_table = {}
 
   def sort(self):
     self.intents.sort()
@@ -135,14 +139,35 @@ class RoutingController():
 
   def get_state_of_links(self):
     self.links_state = {
-    "s2": [s1s2_delay, s1_p4-pre_s1_p4],
-    "s3": [s1s3_delay, s1_p5-pre_s1_p5],
-    "s4": [s1s4_delay, s1_p6-pre_s1_p6]
+    "s4": s1s4_delay,
+    "s2": s1s2_delay,#  s1_p4-pre_s1_p4],
+    "s3": s1s3_delay,#  s1_p5-pre_s1_p5],
+     #"s4": s1s4_delay # s1_p6-pre_s1_p6]
     }
   
   def update(self):
     self.get_state_of_links()    
+    self.routing()
     print "[RoutingController] routing controller updated links info"
+  
+  def routing(self):
+    for intent in intents:
+      possible_flows = []
+      for _, (name_switch, delay) in enumerate(self.links_state.items()):
+        if int(intent.delay) > delay:
+          possible_flows.append(name_switch)
+      print intent.source_host, intent.destination_host, intent.delay, possible_flows
+  def msg(self, dest_address, port):
+    # flow_table ={'s2': 5, 's3': 6, 's4':  }
+    msg = of.ofp_flow_mod()
+    msg.command=of.OFPFC_MODIFY_STRICT
+    msg.priority =100
+    msg.idle_timeout = 0
+    msg.hard_timeout = 0
+    msg.match.dl_type = 0x0800
+    msg.match.nw_dst = dest_address
+    msg.actions.append(of.ofp_action_output(port = port))
+    core.openflow.getConnection(s1_dpid).send(msg)
 
 routingController = RoutingController()
 routingController.intents = intents
@@ -188,7 +213,7 @@ def _timer_func ():
   # below, routing in s1 towards h4 (IP=10.0.0.4) is set according to the value of the variable turn
   # turn controls the round robin operation
   # turn=0/1/2 => route through s2/s3/s4, respectively
-  flow_table = [ ('s2', 5), ('s3', 6), ('s4', 4) ]
+ 
 
   
   msg = of.ofp_flow_mod()
@@ -201,6 +226,10 @@ def _timer_func ():
   msg.actions.append(of.ofp_action_output(port = 5))
   core.openflow.getConnection(s1_dpid).send(msg)
   
+  # testy
+  routingController.update()
+  print(routingController.links_state)
+
   # This function is called periodically to send measurement-oriented messages to the switches.
   global s1s2_start_time, s1s2_sent_time1, s1s2_sent_time2, s1s2_src_dpid, s1s2_dst_dpid
  
@@ -351,7 +380,7 @@ def _handle_portstats_received (event):
            pre_s4_p1=s4_p1
            s4_p1=f.rx_packets
      print getTheTime(), "s1_p6(Sent):", (s1_p6-pre_s1_p6), "s4_p1(Received):", (s4_p1-pre_s4_p1)
-
+  
  
 
   global s1s2_start_time, s1s2_sent_time1, s1s2_sent_time2, s1s2_received_time1, s1s2_received_time2, s1s2_src_dpid, s1s2_dst_dpid, s1s2_OWD1, s1s2_OWD2
@@ -393,9 +422,7 @@ def _handle_portstats_received (event):
      # print "OWD2: ", OWD2, "ms"
 
 
-     # testy
-    routingController.update()
-    print(routingController.links_state)
+    
 
 def _handle_ConnectionUp (event):
   # waits for connections from all switches, after connecting to all of them it starts a round robin timer for triggering h1-h4 routing changes
@@ -459,7 +486,7 @@ def _handle_PacketIn(event):
     d,=struct.unpack('!I', c)  # note that d,=... is a struct.unpack and always returns a tuple
     #print "[ms*10]: received_time=", int(s1s2_received_time), ", d=", d, ", OWD1=", int(s1s2_OWD1), ", OWD2=", int(s1s2_OWD2)
     s1s2_delay = int(s1s2_received_time - d - s1s2_OWD1 - s1s2_OWD2)/10
-    print "s1-s2 delay:", s1s2_delay, "[ms] <=====" # divide by 10 to normalise to milliseconds
+    # print "s1-s2 delay:", s1s2_delay, "[ms] <=====" # divide by 10 to normalise to milliseconds
 
 
   global s1s3_start_time, s1s3_OWD1, s1s3_OWD2, s1s3_delay
@@ -473,7 +500,7 @@ def _handle_PacketIn(event):
     d,=struct.unpack('!I', c)  # note that d,=... is a struct.unpack and always returns a tuple
     #print "[ms*10]: received_time=", int(s1s3_received_time), ", d=", d, ", OWD1=", int(s1s3_OWD1), ", OWD2=", int(s1s3_OWD2)
     s1s3_delay = int(s1s3_received_time - d - s1s3_OWD1 - s1s3_OWD2)/10
-    print "s1-s3 delay:", s1s3_delay, "[ms] <=====" # divide by 10 to normalise to milliseconds
+    # print "s1-s3 delay:", s1s3_delay, "[ms] <=====" # divide by 10 to normalise to milliseconds
   
 
   global s1s4_start_time, s1s4_OWD1, s1s4_OWD2, s1s4_delay
@@ -487,7 +514,7 @@ def _handle_PacketIn(event):
     d,=struct.unpack('!I', c)  # note that d,=... is a struct.unpack and always returns a tuple
     #print "[ms*10]: received_time=", int(s1s4_received_time), ", d=", d, ", OWD1=", int(s1s4_OWD1), ", OWD2=", int(s1s4_OWD2)
     s1s4_delay = int(s1s4_received_time - d - s1s4_OWD1 - s1s4_OWD2)/10
-    print "s1-s4 delay:", s1s4_delay, "[ms] <=====" # divide by 10 to normalise to milliseconds
+    # print "s1-s4 delay:", s1s4_delay, "[ms] <=====" # divide by 10 to normalise to milliseconds
   
 
 
