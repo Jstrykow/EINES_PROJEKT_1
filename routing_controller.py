@@ -200,7 +200,7 @@ def _timer_func ():
     e.payload = f
     msg.data = e.pack()
     core.openflow.getConnection(s1s2_src_dpid).send(msg)
-    print "=====> probe sent: f=", f.timestamp, " after=", int(time.time()*1000*10 - s1s2_start_time), " [10*ms]"
+    #print "=====> probe sent: f=", f.timestamp, " after=", int(time.time()*1000*10 - s1s2_start_time), " [10*ms]"
 
   # the following executes only when a connection to 'switch1' exists (otherwise AttributeError can be raised)
   if s1s2_dst_dpid <>0 and not core.openflow.getConnection(s1s2_dst_dpid) is None:
@@ -233,7 +233,7 @@ def _timer_func ():
     e.payload = f
     msg.data = e.pack()
     core.openflow.getConnection(s1s3_src_dpid).send(msg)
-    print "=====> probe sent: f=", f.timestamp, " after=", int(time.time()*1000*10 - s1s3_start_time), " [10*ms]"
+    #print "=====> probe sent: f=", f.timestamp, " after=", int(time.time()*1000*10 - s1s3_start_time), " [10*ms]"
 
   # the following executes only when a connection to 'switch1' exists (otherwise AttributeError can be raised)
   if s1s3_dst_dpid <>0 and not core.openflow.getConnection(s1s3_dst_dpid) is None:
@@ -266,7 +266,7 @@ def _timer_func ():
     e.payload = f
     msg.data = e.pack()
     core.openflow.getConnection(s1s4_src_dpid).send(msg)
-    print "=====> probe sent: f=", f.timestamp, " after=", int(time.time()*1000*10 - s1s4_start_time), " [10*ms]"
+    #print "=====> probe sent: f=", f.timestamp, " after=", int(time.time()*1000*10 - s1s4_start_time), " [10*ms]"
 
   # the following executes only when a connection to 'switch1' exists (otherwise AttributeError can be raised)
   if s1s4_dst_dpid <>0 and not core.openflow.getConnection(s1s4_dst_dpid) is None:
@@ -431,8 +431,8 @@ def _handle_PacketIn(event):
 
     c=packet.find('ethernet').payload
     d,=struct.unpack('!I', c)  # note that d,=... is a struct.unpack and always returns a tuple
-    print "[ms*10]: received_time=", int(s1s2_received_time), ", d=", d, ", OWD1=", int(s1s2_OWD1), ", OWD2=", int(s1s2_OWD2)
-    print "delay:", int(s1s2_received_time - d - s1s2_OWD1 - s1s2_OWD2)/10, "[ms] <=====" # divide by 10 to normalise to milliseconds
+    #print "[ms*10]: received_time=", int(s1s2_received_time), ", d=", d, ", OWD1=", int(s1s2_OWD1), ", OWD2=", int(s1s2_OWD2)
+    print "s1-s2 delay:", int(s1s2_received_time - d - s1s2_OWD1 - s1s2_OWD2)/10, "[ms] <=====" # divide by 10 to normalise to milliseconds
 
 
   global s1s3_start_time, s1s3_OWD1, s1s3_OWD2
@@ -444,8 +444,8 @@ def _handle_PacketIn(event):
 
     c=packet.find('ethernet').payload
     d,=struct.unpack('!I', c)  # note that d,=... is a struct.unpack and always returns a tuple
-    print "[ms*10]: received_time=", int(s1s3_received_time), ", d=", d, ", OWD1=", int(s1s3_OWD1), ", OWD2=", int(s1s3_OWD2)
-    print "delay:", int(s1s3_received_time - d - s1s3_OWD1 - s1s3_OWD2)/10, "[ms] <=====" # divide by 10 to normalise to milliseconds
+    #print "[ms*10]: received_time=", int(s1s3_received_time), ", d=", d, ", OWD1=", int(s1s3_OWD1), ", OWD2=", int(s1s3_OWD2)
+    print "s1-s3 delay:", int(s1s3_received_time - d - s1s3_OWD1 - s1s3_OWD2)/10, "[ms] <=====" # divide by 10 to normalise to milliseconds
   
 
   global s1s4_start_time, s1s4_OWD1, s1s4_OWD2
@@ -457,8 +457,8 @@ def _handle_PacketIn(event):
 
     c=packet.find('ethernet').payload
     d,=struct.unpack('!I', c)  # note that d,=... is a struct.unpack and always returns a tuple
-    print "[ms*10]: received_time=", int(s1s4_received_time), ", d=", d, ", OWD1=", int(s1s4_OWD1), ", OWD2=", int(s1s4_OWD2)
-    print "delay:", int(s1s4_received_time - d - s1s4_OWD1 - s1s4_OWD2)/10, "[ms] <=====" # divide by 10 to normalise to milliseconds
+    #print "[ms*10]: received_time=", int(s1s4_received_time), ", d=", d, ", OWD1=", int(s1s4_OWD1), ", OWD2=", int(s1s4_OWD2)
+    print "s1-s4 delay:", int(s1s4_received_time - d - s1s4_OWD1 - s1s4_OWD2)/10, "[ms] <=====" # divide by 10 to normalise to milliseconds
   
 
 
