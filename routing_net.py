@@ -34,9 +34,9 @@ class MyTopo(Topo):
         self.addLink(h1, s1, bw=1, delay='0ms', loss=0, max_queue_size=1000, use_htb=True)
         self.addLink(h2, s1, bw=1, delay='0ms', loss=0, max_queue_size=1000, use_htb=True)
         self.addLink(h3, s1, bw=1, delay='0ms', loss=0, max_queue_size=1000, use_htb=True)
-        self.addLink(s1, s2, bw=1, delay='200ms', loss=0, max_queue_size=1000, use_htb=True)
-        self.addLink(s1, s3, bw=1, delay='50ms', loss=0, max_queue_size=1000, use_htb=True)
-        self.addLink(s1, s4, bw=1, delay='10ms', loss=0, max_queue_size=1000, use_htb=True)
+        self.addLink(s1, s2, bw=1, delay='0ms', loss=0, max_queue_size=1000, use_htb=True)
+        self.addLink(s1, s3, bw=1, delay='0ms', loss=0, max_queue_size=1000, use_htb=True)
+        self.addLink(s1, s4, bw=1, delay='0ms', loss=0, max_queue_size=1000, use_htb=True)
         self.addLink(s2, s5, bw=1, delay='0ms', loss=0, max_queue_size=1000, use_htb=True)
         self.addLink(s3, s5, bw=1, delay='0ms', loss=0, max_queue_size=1000, use_htb=True)
         self.addLink(s4, s5, bw=1, delay='0ms', loss=0, max_queue_size=1000, use_htb=True)
@@ -87,6 +87,21 @@ def perfTest():
     s4.cmd('sudo ip link set dev s4-eth1 down')
     s4.cmd('sudo ip link set dev s4-eth1 address 40:10:00:00:00:00')
     s4.cmd('sudo ip link set dev s4-eth1 up')
+
+
+    #ADD DELAYS
+
+    #s1-s2
+    s1.cmdPrint('tc qdisc del dev s1-eth4 root')
+    s1.cmdPrint('tc qdisc add dev s1-eth4 root handle 10: netem delay 200ms')  #originally 50ms
+
+    #s1-s3
+    s1.cmdPrint('tc qdisc del dev s1-eth5 root')
+    s1.cmdPrint('tc qdisc add dev s1-eth5 root handle 10: netem delay 50ms')  #originally 50ms
+
+    #s1-s4
+    s1.cmdPrint('tc qdisc del dev s1-eth6 root')
+    s1.cmdPrint('tc qdisc add dev s1-eth6 root handle 10: netem delay 10ms')  #originally 50ms
 
     CLI(net) # launch simple Mininet CLI terminal window
     net.stop()
