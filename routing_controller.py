@@ -382,24 +382,29 @@ def _handle_ConnectionUp (event):
       s2_dpid = event.connection.dpid
       s1s2_dst_dpid = event.connection.dpid
       print "s2_dpid=", s2_dpid
+      print "s1s2_dst_dpid=", s1s2_dst_dpid
     elif m.name == "s3-eth1":
       s3_dpid = event.connection.dpid
+      s1s3_dst_dpid = event.connection.dpid
       print "s3_dpid=", s3_dpid
+      print "s1s3_dst_dpid=", s1s3_dst_dpid
     elif m.name == "s4-eth1":
       s4_dpid = event.connection.dpid
       s1s4_dst_dpid = event.connection.dpid
       print "s4_dpid=", s4_dpid
+      print "s1s4_dst_dpid=", s1s4_dst_dpid
     elif m.name == "s5-eth1":
       s5_dpid = event.connection.dpid
       print "s5_dpid=", s5_dpid
     elif m.name == "s1-eth4":
       s1s2_src_dpid = event.connection.dpid
+      print "s1s2_src_dpid=", s1s2_src_dpid
     elif m.name == "s1-eth5":
       s1s3_src_dpid = event.connection.dpid
-    elif m.name == "s3-eth1":
-      s1s3_dst_dpid = event.connection.dpid
+      print "s1s3_src_dpid=", s1s3_src_dpid
     elif m.name == "s1-eth6":
       s1s4_src_dpid = event.connection.dpid
+      print "s1s4_src_dpid=", s1s4_src_dpid
  
   # start 1-second recurring loop timer for round-robin routing changes; _timer_func is to be called on timer expiration to change the flow entry in s1
   if s1_dpid<>0 and s2_dpid<>0 and s3_dpid<>0 and s4_dpid<>0 and s5_dpid<>0:
