@@ -1,5 +1,6 @@
 #!/usr/bin/python
  
+from lib2to3.pytree import Node
 from mininet.topo import Topo
 from mininet.net import Mininet
 from mininet.node import CPULimitedHost
@@ -42,6 +43,7 @@ class MyTopo(Topo):
         self.addLink(s5, h4, bw=1, delay='0ms', loss=0, max_queue_size=1000, use_htb=True)
         self.addLink(s5, h5, bw=1, delay='0ms', loss=0, max_queue_size=1000, use_htb=True)
         self.addLink(s5, h6, bw=1, delay='0ms', loss=0, max_queue_size=1000, use_htb=True)
+        
 
 def perfTest():
     "Create network and run simple performance test"
