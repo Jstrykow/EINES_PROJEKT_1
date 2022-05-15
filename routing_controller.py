@@ -480,147 +480,7 @@ def _handle_PacketIn(event):
   # All rules are set up in a given switch on packet_in event received from the switch which means no flow entry has been found in the flow table.
   # This setting up may happen either at the very first pactet being sent or after flow entry expirationn inn the switch
  
-  if event.connection.dpid==s1_dpid:
-    a=packet.find('arp')					# If packet object does not encapsulate a packet of the type indicated, find() returns None
-    # print(a)
-    routing_table = { 
-       "10.0.0.1": 1,
-       "10.0.0.2": 2,
-       "10.0.0.3": 3,
-       "10.0.0.4": 4,
-       "10.0.0.5": 5,
-       "10.0.0.6": 6
-     }
-    if a: 
-      msg = of.ofp_packet_out(data=event.ofp)		
-      # print(routing_table["10.0.0.4"])	# Create packet_out message; use the incoming packet as the data for the packet out
-      msg.actions.append(of.ofp_action_output(port = routing_table[str(a.protodst)]))		# Add an action to send to the specified port
-      event.connection.send(msg)				# Send message to switch
-
-    for _, (ip_add, port) in enumerate(routing_table.items()):
-      print(ip_add)
-      print(port)
-      msg = of.ofp_flow_mod()
-      msg.priority =100
-      msg.idle_timeout = 0
-      msg.hard_timeout = 0
-      msg.match.dl_type = 0x0800		# rule for IP packets (x0800)
-      msg.match.nw_dst = str(ip_add)
-      msg.actions.append(of.ofp_action_output(port = int(port)))
-      event.connection.send(msg)
-    
-  elif event.connection.dpid==s2_dpid: 
-     msg = of.ofp_flow_mod()
-     msg.priority =10
-     msg.idle_timeout = 0
-     msg.hard_timeout = 0
-     msg.match.in_port = 1
-     msg.match.dl_type=0x0806		# rule for ARP packets (x0806)
-     msg.actions.append(of.ofp_action_output(port = 2))
-     event.connection.send(msg)
- 
-     msg = of.ofp_flow_mod()
-     msg.priority =10
-     msg.idle_timeout = 0
-     msg.hard_timeout = 0
-     msg.match.in_port = 1
-     msg.match.dl_type=0x0800
-     msg.actions.append(of.ofp_action_output(port = 2))
-     event.connection.send(msg)
-  
-     msg = of.ofp_flow_mod()
-     msg.priority =10
-     msg.idle_timeout = 0
-     msg.hard_timeout = 0
-     msg.match.in_port = 2
-     msg.match.dl_type=0x0806
-     msg.actions.append(of.ofp_action_output(port = 1))
-     event.connection.send(msg)
- 
-     msg = of.ofp_flow_mod()
-     msg.priority =10
-     msg.idle_timeout = 0
-     msg.hard_timeout = 0
-     msg.match.in_port = 2
-     msg.match.dl_type=0x0800
-     msg.actions.append(of.ofp_action_output(port = 1))
-     event.connection.send(msg)
- 
-  elif event.connection.dpid==s3_dpid: 
-     msg = of.ofp_flow_mod()
-     msg.priority =10
-     msg.idle_timeout = 0
-     msg.hard_timeout = 0
-     msg.match.in_port = 1
-     msg.match.dl_type=0x0806
-     msg.actions.append(of.ofp_action_output(port = 2))
-     event.connection.send(msg)
- 
-     msg = of.ofp_flow_mod()
-     msg.priority =10
-     msg.idle_timeout = 0
-     msg.hard_timeout = 0
-     msg.match.in_port = 1
-     msg.match.dl_type=0x0800
-     msg.actions.append(of.ofp_action_output(port = 2))
-     event.connection.send(msg)
-  
-     msg = of.ofp_flow_mod()
-     msg.priority =10
-     msg.idle_timeout = 0
-     msg.hard_timeout = 0
-     msg.match.in_port = 2
-     msg.match.dl_type=0x0806
-     msg.actions.append(of.ofp_action_output(port = 1))
-     event.connection.send(msg)
- 
-     msg = of.ofp_flow_mod()
-     msg.priority =10
-     msg.idle_timeout = 0
-     msg.hard_timeout = 0
-     msg.match.in_port = 2
-     msg.match.dl_type=0x0800
-     msg.actions.append(of.ofp_action_output(port = 1))
-     event.connection.send(msg)
-  
-  elif event.connection.dpid==s4_dpid: 
-     msg = of.ofp_flow_mod()
-     msg.priority =10
-     msg.idle_timeout = 0
-     msg.hard_timeout = 0
-     msg.match.in_port = 1
-     msg.match.dl_type=0x0806
-     msg.actions.append(of.ofp_action_output(port = 2))
-     event.connection.send(msg)
- 
-     msg = of.ofp_flow_mod()
-     msg.priority =10
-     msg.idle_timeout = 0
-     msg.hard_timeout = 0
-     msg.match.in_port = 1
-     msg.match.dl_type=0x0800
-     msg.actions.append(of.ofp_action_output(port = 2))
-     event.connection.send(msg)
-  
-     msg = of.ofp_flow_mod()
-     msg.priority =10
-     msg.idle_timeout = 0
-     msg.hard_timeout = 0
-     msg.match.in_port = 2
-     msg.match.dl_type=0x0806
-     msg.actions.append(of.ofp_action_output(port = 1))
-     event.connection.send(msg)
- 
-     msg = of.ofp_flow_mod()
-     msg.priority =10
-     msg.idle_timeout = 0
-     msg.hard_timeout = 0
-     msg.match.in_port = 2
-     msg.match.dl_type=0x0800
-     msg.actions.append(of.ofp_action_output(port = 1))
-     event.connection.send(msg)
- 
-  elif event.connection.dpid==s5_dpid: 
+  if event.connection.dpid==s1_dpid or event.connection.dpid==s5_dpid:
     a=packet.find('arp')					# If packet object does not encapsulate a packet of the type indicated, find() returns None
     routing_table = { 
        "10.0.0.1": 1,
@@ -632,13 +492,11 @@ def _handle_PacketIn(event):
      }
     if a: 
       msg = of.ofp_packet_out(data=event.ofp)		
-      # print(routing_table["10.0.0.4"])	# Create packet_out message; use the incoming packet as the data for the packet out
+    	# Create packet_out message; use the incoming packet as the data for the packet out
       msg.actions.append(of.ofp_action_output(port = routing_table[str(a.protodst)]))		# Add an action to send to the specified port
       event.connection.send(msg)				# Send message to switch
 
     for _, (ip_add, port) in enumerate(routing_table.items()):
-      print(ip_add)
-      print(port)
       msg = of.ofp_flow_mod()
       msg.priority =100
       msg.idle_timeout = 0
@@ -648,6 +506,17 @@ def _handle_PacketIn(event):
       msg.actions.append(of.ofp_action_output(port = int(port)))
       event.connection.send(msg)
     
+  elif event.connection.dpid==s2_dpid or event.connection.dpid==s3_dpid or event.connection.dpid==s4_dpid:
+    match_table = [(1, 0x0806, 2), (1, 0x0800, 2), (2, 0x0806, 1), (2, 0x0800, 1)]
+    for _, (in_port, dl_type, port) in enumerate(match_table):
+      msg = of.ofp_flow_mod()
+      msg.priority =10
+      msg.idle_timeout = 0
+      msg.hard_timeout = 0
+      msg.match.in_port = in_port
+      msg.match.dl_type= dl_type		# rule for ARP packets (x0806)
+      msg.actions.append(of.ofp_action_output(port = port))
+      event.connection.send(msg)
 
 # As usually, launch() is the function called by POX to initialize the component (routing_controller.py in our case) 
 # indicated by a parameter provided to pox.py 
@@ -665,5 +534,3 @@ def launch ():
   core.openflow.addListenerByName("ConnectionUp", _handle_ConnectionUp) # listen for the establishment of a new control channel with a switch, https://noxrepo.github.io/pox-doc/html/#connectionup
   core.openflow.addListenerByName("PacketIn",_handle_PacketIn) # listen for the reception of packet_in message from switch, https://noxrepo.github.io/pox-doc/html/#packetin
   core.openflow.addListenerByName("ConnectionDown", _handle_ConnectionDown) 
-
-# test
