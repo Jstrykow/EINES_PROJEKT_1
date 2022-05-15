@@ -5,6 +5,7 @@
 #    - default routing is set in all switches on the reception of packet_in messages form the switch,
 #    - then the routing for (h1-h4) pair in switch s1 is changed every one second in a round-robin manner to load balance the traffic through switches s3, s4, s2.
 
+
 from pox.core import core
 import pox.openflow.libopenflow_01 as of
 from pox.lib.util import dpidToStr
@@ -94,18 +95,65 @@ class myproto(packet_base):
   def hdr(self, payload):
     return struct.pack('!I', self.timestamp) # code as unsigned int (I), network byte order (!, big-endian - the most significant byte of a word at the smallest memory address)
 
+class Intent():
+  def __init__(self, source_host, destination_host, delay, capacity):
+    self.source_host = str(source_host)
+    self.destination_host = destination_host
+    self.delay = delay
+    self.capacity = capacity
+    
+  def __gt__(self, other):
+    if(self.delay > other.delay):
+      return True
+    else:
+      return False
+  def __eq__(self, other):
+    if(self.delay > other.delay):
+      return True
+    else:
+      return False
+  
+  def __str__(self):
+    msg = "Intend delay %d" % (self.delay)
+    return msg
+
+intent1 = Intent('s1', 's3', 200, 100)
+intent2 = Intent("s1", "s2", 190, 100)
+intents = [intent1, intent2]
+
+
+
+class RoutingController():
+  def __init__(self):
+    self.intents = []
+    self.links_state = self.get_state_of_links # dict "link_name" : [delay, flow_number, packet_receives]
+    self.number_of_flows = [0, 0, 0] # s2, s3, s4
+
+  def sort(self):
+    self.intents.sort()
+    print "[RoutingController] Intends sorted"
+
+  def get_state_of_links(self):
+    self.links_state = {
+    "s2": [s1s2_delay, s1_p4-pre_s1_p4],
+    "s3": [s1s3_delay, s1_p5-pre_s1_p5],
+    "s4": [s1s4_delay, s1_p6-pre_s1_p6]
+    }
+  
+  def update(self):
+    self.get_state_of_links()    
+    print "[RoutingController] routing controller updated links info"
+
+routingController = RoutingController()
+routingController.intents = intents
+routingController.sort()
 
 def _handle_ConnectionDown (event):
   # Handle connection down - stop the timer for sending the probes
   # TODO: s2-s3-s4 ==> only cancel timer for specific connection
   #global s1s2_mytimer, s1s3_mytimer, s1s4_mytimer
   print "ConnectionDown: ", dpidToStr(event.connection.dpid)
-  #s1s2_mytimer.cancel()
-  #s1s3_mytimer.cancel()
-  #s1s4_mytimer.cancel()
 
- 
-turn=0
  
 def getTheTime():  #function to create a timestamp
   flock = time.localtime()
@@ -140,48 +188,19 @@ def _timer_func ():
   # below, routing in s1 towards h4 (IP=10.0.0.4) is set according to the value of the variable turn
   # turn controls the round robin operation
   # turn=0/1/2 => route through s2/s3/s4, respectively
+  flow_table = [ ('s2', 5), ('s3', 6), ('s4', 4) ]
 
-  if turn==0:
-      msg = of.ofp_flow_mod()
-      msg.command=of.OFPFC_MODIFY_STRICT
-      msg.priority =100
-      msg.idle_timeout = 0
-      msg.hard_timeout = 0
-      msg.match.dl_type = 0x0800
-      msg.match.nw_dst = "10.0.0.4"
-      msg.actions.append(of.ofp_action_output(port = 5))
-      core.openflow.getConnection(s1_dpid).send(msg)
-      turn=1
-      #return
-
-  if turn==1:
-      msg = of.ofp_flow_mod()
-      msg.command=of.OFPFC_MODIFY_STRICT
-      msg.priority =100
-      msg.idle_timeout = 0
-      msg.hard_timeout = 0
-      msg.match.dl_type = 0x0800
-      msg.match.nw_dst = "10.0.0.4"
-      msg.actions.append(of.ofp_action_output(port = 6))
-      core.openflow.getConnection(s1_dpid).send(msg)
-      turn=2
-      #return
-
-  if turn==2:
-      msg = of.ofp_flow_mod()
-      msg.command=of.OFPFC_MODIFY_STRICT
-      msg.priority =100
-      msg.idle_timeout = 0
-      msg.hard_timeout = 0
-      msg.match.dl_type = 0x0800
-      msg.match.nw_dst = "10.0.0.4"
-      msg.actions.append(of.ofp_action_output(port = 4))
-      core.openflow.getConnection(s1_dpid).send(msg)
-      turn=0
-      #return
-
-
-
+  
+  msg = of.ofp_flow_mod()
+  msg.command=of.OFPFC_MODIFY_STRICT
+  msg.priority =100
+  msg.idle_timeout = 0
+  msg.hard_timeout = 0
+  msg.match.dl_type = 0x0800
+  msg.match.nw_dst = "10.0.0.4"
+  msg.actions.append(of.ofp_action_output(port = 5))
+  core.openflow.getConnection(s1_dpid).send(msg)
+  
   # This function is called periodically to send measurement-oriented messages to the switches.
   global s1s2_start_time, s1s2_sent_time1, s1s2_sent_time2, s1s2_src_dpid, s1s2_dst_dpid
  
@@ -333,6 +352,7 @@ def _handle_portstats_received (event):
            s4_p1=f.rx_packets
      print getTheTime(), "s1_p6(Sent):", (s1_p6-pre_s1_p6), "s4_p1(Received):", (s4_p1-pre_s4_p1)
 
+ 
 
   global s1s2_start_time, s1s2_sent_time1, s1s2_sent_time2, s1s2_received_time1, s1s2_received_time2, s1s2_src_dpid, s1s2_dst_dpid, s1s2_OWD1, s1s2_OWD2
 
@@ -372,6 +392,10 @@ def _handle_portstats_received (event):
     s1s4_OWD2=0.5*(s1s4_received_time - s1s4_sent_time2) #originally sent_time1 was here
      # print "OWD2: ", OWD2, "ms"
 
+
+     # testy
+    routingController.update()
+    print(routingController.links_state)
 
 def _handle_ConnectionUp (event):
   # waits for connections from all switches, after connecting to all of them it starts a round robin timer for triggering h1-h4 routing changes
@@ -415,15 +439,6 @@ def _handle_ConnectionUp (event):
   # start 1-second recurring loop timer for round-robin routing changes; _timer_func is to be called on timer expiration to change the flow entry in s1
   if s1_dpid<>0 and s2_dpid<>0 and s3_dpid<>0 and s4_dpid<>0 and s5_dpid<>0:
     Timer(1, _timer_func, recurring=True)
-    # when the controller knows both src_dpid and dst_dpid are up, mytimer is started so that a probe packet is sent every 2 seconds across the link between respective switches
-  #if s1s2_src_dpid<>0 and s1s2_dst_dpid<>0:
-    #s1s2_mytimer=Timer(2, _timer_func_s1s2, recurring=True)
-    # when the controller knows both src_dpid and dst_dpid are up, mytimer is started so that a probe packet is sent every 2 seconds across the link between respective switches
-  #if s1s3_src_dpid<>0 and s1s3_dst_dpid<>0:
-    #s1s3_mytimer=Timer(2, _timer_func_s1s3, recurring=True)
-    # when the controller knows both src_dpid and dst_dpid are up, mytimer is started so that a probe packet is sent every 2 seconds across the link between respective switches
-  #if s1s4_src_dpid<>0 and s1s4_dst_dpid<>0:
-    #s1s4_mytimer=Timer(2, _timer_func_s1s4, recurring=True)
 
  
 def _handle_PacketIn(event):
