@@ -195,7 +195,7 @@ def _timer_func ():
     e.type=0x5577 #set unregistered EtherType in L2 header type field, here assigned to the probe packet type 
     msg = of.ofp_packet_out() #create PACKET_OUT message object
     msg.actions.append(of.ofp_action_output(port=4)) #set the output port for the packet in switch0
-    f.timestamp = int(time.time()*1000*10 - start_time) #set the timestamp in the probe packet
+    f.timestamp = int(time.time()*1000*10 - s1s2_start_time) #set the timestamp in the probe packet
     # print f.timestamp
     e.payload = f
     msg.data = e.pack()
@@ -228,7 +228,7 @@ def _timer_func ():
     e.type=0x5578 #set unregistered EtherType in L2 header type field, here assigned to the probe packet type 
     msg = of.ofp_packet_out() #create PACKET_OUT message object
     msg.actions.append(of.ofp_action_output(port=5)) #set the output port for the packet in switch0
-    f.timestamp = int(time.time()*1000*10 - start_time) #set the timestamp in the probe packet
+    f.timestamp = int(time.time()*1000*10 - s1s3_start_time) #set the timestamp in the probe packet
     # print f.timestamp
     e.payload = f
     msg.data = e.pack()
@@ -261,7 +261,7 @@ def _timer_func ():
     e.type=0x5579 #set unregistered EtherType in L2 header type field, here assigned to the probe packet type 
     msg = of.ofp_packet_out() #create PACKET_OUT message object
     msg.actions.append(of.ofp_action_output(port=6)) #set the output port for the packet in switch0
-    f.timestamp = int(time.time()*1000*10 - start_time) #set the timestamp in the probe packet
+    f.timestamp = int(time.time()*1000*10 - s1s4_start_time) #set the timestamp in the probe packet
     # print f.timestamp
     e.payload = f
     msg.data = e.pack()
@@ -333,11 +333,11 @@ def _handle_portstats_received (event):
   s1s2_received_time = time.time() * 1000*10 - s1s2_start_time
    # measure T1 as of lab guide
   if event.connection.dpid == s1s2_src_dpid:
-    OWD1=0.5*(s1s2_received_time - s1s2_sent_time1)
+    s1s2_OWD1=0.5*(s1s2_received_time - s1s2_sent_time1)
      # print "OWD1: ", OWD1, "ms"s
    # measure T2 as of lab guide
   elif event.connection.dpid == s1s2_dst_dpid:
-    OWD2=0.5*(s1s2_received_time - s1s2_sent_time2) #originally sent_time1 was here
+    s1s2_OWD2=0.5*(s1s2_received_time - s1s2_sent_time2) #originally sent_time1 was here
      # print "OWD2: ", OWD2, "ms"
 
 
@@ -346,11 +346,11 @@ def _handle_portstats_received (event):
   s1s3_received_time = time.time() * 1000*10 - s1s3_start_time
    # measure T1 as of lab guide
   if event.connection.dpid == s1s3_src_dpid:
-    OWD1=0.5*(s1s3_received_time - s1s3_sent_time1)
+    s1s3_OWD1=0.5*(s1s3_received_time - s1s3_sent_time1)
      # print "OWD1: ", OWD1, "ms"s
    # measure T2 as of lab guide
   elif event.connection.dpid == s1s3_dst_dpid:
-    OWD2=0.5*(s1s3_received_time - s1s3_sent_time2) #originally sent_time1 was here
+    s1s3_OWD2=0.5*(s1s3_received_time - s1s3_sent_time2) #originally sent_time1 was here
      # print "OWD2: ", OWD2, "ms"
 
 
@@ -359,17 +359,17 @@ def _handle_portstats_received (event):
   s1s4_received_time = time.time() * 1000*10 - s1s4_start_time
    # measure T1 as of lab guide
   if event.connection.dpid == s1s4_src_dpid:
-    OWD1=0.5*(s1s4_received_time - s1s4_sent_time1)
+    s1s4_OWD1=0.5*(s1s4_received_time - s1s4_sent_time1)
      # print "OWD1: ", OWD1, "ms"s
    # measure T2 as of lab guide
   elif event.connection.dpid == s1s4_dst_dpid:
-    OWD2=0.5*(s1s4_received_time - s1s4_sent_time2) #originally sent_time1 was here
+    s1s4_OWD2=0.5*(s1s4_received_time - s1s4_sent_time2) #originally sent_time1 was here
      # print "OWD2: ", OWD2, "ms"
 
 
 def _handle_ConnectionUp (event):
   # waits for connections from all switches, after connecting to all of them it starts a round robin timer for triggering h1-h4 routing changes
-  global s1_dpid, s2_dpid, s3_dpid, s4_dpid, s5_dpid
+  global s1_dpid, s2_dpid, s3_dpid, s4_dpid, s5_dpid, s1s2_dst_dpid, s1s2_src_dpid, s1s3_dst_dpid, s1s3_src_dpid, s1s4_dst_dpid, s1s4_src_dpid
   print "ConnectionUp: ",dpidToStr(event.connection.dpid)
  
   # remember the connection dpid for the switch
@@ -771,7 +771,10 @@ def _handle_PacketIn(event):
 
 
 def launch ():
-  global start_time
+  global s1s2_start_time, s1s3_start_time, s1s4_start_time
+  s1s2_start_time = time.time() * 1000*10
+  s1s3_start_time = s1s2_start_time
+  s1s4_start_time = s1s2_start_time
   # core is an instance of class POXCore (EventMixin) and it can register objects.
   # An object with name xxx can be registered to core instance which makes this object become a "component" available as pox.core.core.xxx.
   # for examples see e.g. https://noxrepo.github.io/pox-doc/html/#the-openflow-nexus-core-openflow 
