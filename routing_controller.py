@@ -33,6 +33,8 @@ s1s2_OWD2 = 0.0
 s1s2_src_dpid = 0
 s1s2_dst_dpid = 0
 
+s1s2_delay = 0
+
 # s1-s3 measurements
 s1s3_start_time = 0.0
 s1s3_sent_time1 = 0.0
@@ -45,6 +47,8 @@ s1s3_OWD2 = 0.0
 s1s3_src_dpid = 0
 s1s3_dst_dpid = 0
 
+s1s3_delay = 0
+
 # s1-s4 measurements
 s1s4_start_time = 0.0
 s1s4_sent_time1 = 0.0
@@ -56,6 +60,8 @@ s1s4_OWD1 = 0.0
 s1s4_OWD2 = 0.0
 s1s4_src_dpid = 0
 s1s4_dst_dpid = 0
+
+s1s4_delay = 0
 
 s1_dpid = 0
 s2_dpid = 0
@@ -427,7 +433,7 @@ def _handle_PacketIn(event):
   # print "_handle_PacketIn is called, packet.type:", packet.type, " event.connection.dpid:", event.connection.dpid
 
 
-  global s1s2_start_time, s1s2_OWD1, s1s2_OWD2
+  global s1s2_start_time, s1s2_OWD1, s1s2_OWD2, s1s2_delay
 
   s1s2_received_time = time.time() * 1000*10 - s1s2_start_time #amount of time elapsed from start_time
  
@@ -437,10 +443,11 @@ def _handle_PacketIn(event):
     c=packet.find('ethernet').payload
     d,=struct.unpack('!I', c)  # note that d,=... is a struct.unpack and always returns a tuple
     #print "[ms*10]: received_time=", int(s1s2_received_time), ", d=", d, ", OWD1=", int(s1s2_OWD1), ", OWD2=", int(s1s2_OWD2)
-    print "s1-s2 delay:", int(s1s2_received_time - d - s1s2_OWD1 - s1s2_OWD2)/10, "[ms] <=====" # divide by 10 to normalise to milliseconds
+    s1s2_delay = int(s1s2_received_time - d - s1s2_OWD1 - s1s2_OWD2)/10
+    print "s1-s2 delay:", s1s2_delay, "[ms] <=====" # divide by 10 to normalise to milliseconds
 
 
-  global s1s3_start_time, s1s3_OWD1, s1s3_OWD2
+  global s1s3_start_time, s1s3_OWD1, s1s3_OWD2, s1s3_delay
 
   s1s3_received_time = time.time() * 1000*10 - s1s3_start_time #amount of time elapsed from start_time
  
@@ -450,10 +457,11 @@ def _handle_PacketIn(event):
     c=packet.find('ethernet').payload
     d,=struct.unpack('!I', c)  # note that d,=... is a struct.unpack and always returns a tuple
     #print "[ms*10]: received_time=", int(s1s3_received_time), ", d=", d, ", OWD1=", int(s1s3_OWD1), ", OWD2=", int(s1s3_OWD2)
-    print "s1-s3 delay:", int(s1s3_received_time - d - s1s3_OWD1 - s1s3_OWD2)/10, "[ms] <=====" # divide by 10 to normalise to milliseconds
+    s1s3_delay = int(s1s3_received_time - d - s1s3_OWD1 - s1s3_OWD2)/10
+    print "s1-s3 delay:", s1s3_delay, "[ms] <=====" # divide by 10 to normalise to milliseconds
   
 
-  global s1s4_start_time, s1s4_OWD1, s1s4_OWD2
+  global s1s4_start_time, s1s4_OWD1, s1s4_OWD2, s1s4_delay
 
   s1s4_received_time = time.time() * 1000*10 - s1s4_start_time #amount of time elapsed from start_time
  
@@ -463,7 +471,8 @@ def _handle_PacketIn(event):
     c=packet.find('ethernet').payload
     d,=struct.unpack('!I', c)  # note that d,=... is a struct.unpack and always returns a tuple
     #print "[ms*10]: received_time=", int(s1s4_received_time), ", d=", d, ", OWD1=", int(s1s4_OWD1), ", OWD2=", int(s1s4_OWD2)
-    print "s1-s4 delay:", int(s1s4_received_time - d - s1s4_OWD1 - s1s4_OWD2)/10, "[ms] <=====" # divide by 10 to normalise to milliseconds
+    s1s4_delay = int(s1s4_received_time - d - s1s4_OWD1 - s1s4_OWD2)/10
+    print "s1-s4 delay:", s1s4_delay, "[ms] <=====" # divide by 10 to normalise to milliseconds
   
 
 
