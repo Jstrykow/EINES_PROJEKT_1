@@ -55,12 +55,39 @@ def perfTest():
     dumpNodeConnections(net.hosts)
     h1,h2,h3=net.get('h1','h2','h3')
     h4,h5,h6=net.get('h4','h5','h6')
+    s1,s2,s3=net.get('s1','s2','s3')
+    s4=net.get('s4')
     h1.setMAC("0:0:0:0:0:1")
     h2.setMAC("0:0:0:0:0:2")
     h3.setMAC("0:0:0:0:0:3")
     h4.setMAC("0:0:0:0:0:4")
     h5.setMAC("0:0:0:0:0:5")
     h6.setMAC("0:0:0:0:0:6")
+    #s1-s2
+    s1.cmd('sudo ip link set dev s1-eth4 down')
+    s1.cmd('sudo ip link set dev s1-eth4 address 10:20:00:00:00:00')
+    s1.cmd('sudo ip link set dev s1-eth4 up')
+        #s2-s1
+    s2.cmd('sudo ip link set dev s2-eth1 down')
+    s2.cmd('sudo ip link set dev s2-eth1 address 20:10:00:00:00:00')
+    s2.cmd('sudo ip link set dev s2-eth1 up')
+        #s1-s3
+    s1.cmd('sudo ip link set dev s1-eth5 down')
+    s1.cmd('sudo ip link set dev s1-eth5 address 10:30:00:00:00:00')
+    s1.cmd('sudo ip link set dev s1-eth5 up')
+        #s3-s1
+    s3.cmd('sudo ip link set dev s3-eth1 down')
+    s3.cmd('sudo ip link set dev s3-eth1 address 30:10:00:00:00:00')
+    s3.cmd('sudo ip link set dev s3-eth1 up')
+        #s1-s4
+    s1.cmd('sudo ip link set dev s1-eth6 down')
+    s1.cmd('sudo ip link set dev s1-eth6 address 10:40:00:00:00:00')
+    s1.cmd('sudo ip link set dev s1-eth6 up')
+        #s4-s1
+    s4.cmd('sudo ip link set dev s4-eth1 down')
+    s4.cmd('sudo ip link set dev s4-eth1 address 40:10:00:00:00:00')
+    s4.cmd('sudo ip link set dev s4-eth1 up')
+
     CLI(net) # launch simple Mininet CLI terminal window
     net.stop()
 
