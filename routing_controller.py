@@ -172,7 +172,8 @@ class RoutingController():
       flow = self.argmin(possible_flows, number_of_flows, loads_of_links)
       result = result + " send by: {}".format(flow)
       number_of_flows[flow] = number_of_flows[flow] + 1
-      loads_of_links[flow] = loads_of_links[flow] + intent.capacity 
+      loads_of_links[flow] = loads_of_links[flow] + intent.capacity
+      self.msg(intent.source_host, intent.destination_host, intent.capacity, flow)    
       print result
 
 
@@ -195,7 +196,20 @@ class RoutingController():
     return min_id
 
 
-
+  def msg(self, source_host, destination_host, capacity, switch):
+    flow_table ={'s2': 5, 's3': 6, 's4': 4}
+    src_hosts = {'h1': s1_dpid, 'h2': s2_dpid, 'h3': s3_dpid}
+    core.openflow.getConnection(src_hosts[source_host]).send(of.ofp_stats_request(body=of.ofp_port_stats_request()))
+    msg = of.ofp_flow_mod()
+    msg.command=of.OFPFC_MODIFY_STRICT
+    msg.priority =100
+    msg.idle_timeout = 0
+    msg.hard_timeout = 0
+    msg.match.dl_type = 0x0800
+    msg.match.nw_dst = destination_host
+    msg.actions.append(of.ofp_action_output(port = int(flow_table[switch])))
+    core.openflow.getConnection(src_hosts[source_host]).send(msg)
+    
 
 routingController = RoutingController()
 routingController.intents = intents
