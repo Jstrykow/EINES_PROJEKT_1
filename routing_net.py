@@ -45,6 +45,7 @@ class MyTopo(Topo):
         self.addLink(s5, h6, bw=1, delay='0ms', loss=0, max_queue_size=1000, use_htb=True)
         
 
+
 def perfTest():
     "Create network and run simple performance test"
     topo = MyTopo()
@@ -63,7 +64,7 @@ def perfTest():
     h4.setMAC("0:0:0:0:0:4")
     h5.setMAC("0:0:0:0:0:5")
     h6.setMAC("0:0:0:0:0:6")
-    #s1-s2
+        #s1-s2
     s1.cmd('sudo ip link set dev s1-eth4 down')
     s1.cmd('sudo ip link set dev s1-eth4 address 10:20:00:00:00:00')
     s1.cmd('sudo ip link set dev s1-eth4 up')
@@ -87,9 +88,13 @@ def perfTest():
     s4.cmd('sudo ip link set dev s4-eth1 down')
     s4.cmd('sudo ip link set dev s4-eth1 address 40:10:00:00:00:00')
     s4.cmd('sudo ip link set dev s4-eth1 up')
-
+    print("TEst dupa")
+    delay(5)
     CLI(net) # launch simple Mininet CLI terminal window
     net.stop()
+
+
+
 
 if __name__ == '__main__':
     setLogLevel('info')
