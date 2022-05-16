@@ -87,27 +87,54 @@ def perfTest():
     s4.cmd('sudo ip link set dev s4-eth1 address 40:10:00:00:00:00')
     s4.cmd('sudo ip link set dev s4-eth1 up')
 
-    time.sleep(5)
+    time.sleep(10)
     s1.cmdPrint('tc qdisc del dev s1-eth4 root')
     s1.cmdPrint('tc qdisc add dev s1-eth4 root handle 10: netem delay 10ms')
     s2.cmdPrint('tc qdisc del dev s2-eth1 root')
     s2.cmdPrint('tc qdisc add dev s2-eth1 root handle 10: netem delay 10ms')
 
     s1.cmdPrint('tc qdisc del dev s1-eth5 root')
-    s1.cmdPrint('tc qdisc add dev s1-eth5 root handle 10: netem delay 30ms')
+    s1.cmdPrint('tc qdisc add dev s1-eth5 root handle 10: netem delay 200ms')
     s3.cmdPrint('tc qdisc del dev s1-eth1 root')
-    s4.cmdPrint('tc qdisc add dev s3-eth1 root handle 10: netem delay 30ms')
+    s3.cmdPrint('tc qdisc add dev s3-eth1 root handle 10: netem delay 200ms')
     
     s1.cmdPrint('tc qdisc del dev s1-eth6 root')
-    s1.cmdPrint('tc qdisc add dev s1-eth6 root handle 10: netem delay 60ms')
+    s1.cmdPrint('tc qdisc add dev s1-eth6 root handle 10: netem delay 50ms')
     s4.cmdPrint('tc qdisc del dev s4-eth1 root')
-    s4.cmdPrint('tc qdisc add dev s4-eth1 root handle 10: netem delay 60ms')
+    s4.cmdPrint('tc qdisc add dev s4-eth1 root handle 10: netem delay 50ms')
 
-    time.sleep(60)
+    time.sleep(10)
     s1.cmdPrint('tc qdisc del dev s1-eth4 root')
-    s1.cmdPrint('tc qdisc add dev s1-eth4 root handle 10: netem delay 350ms')
+    s1.cmdPrint('tc qdisc add dev s1-eth4 root handle 10: netem delay 50ms')
     s2.cmdPrint('tc qdisc del dev s2-eth1 root')
-    s2.cmdPrint('tc qdisc add dev s2-eth1 root handle 10: netem delay 350ms')
+    s2.cmdPrint('tc qdisc add dev s2-eth1 root handle 10: netem delay 50ms')
+
+    s1.cmdPrint('tc qdisc del dev s1-eth5 root')
+    s1.cmdPrint('tc qdisc add dev s1-eth5 root handle 10: netem delay 10ms')
+    s3.cmdPrint('tc qdisc del dev s1-eth1 root')
+    s3.cmdPrint('tc qdisc add dev s3-eth1 root handle 10: netem delay 10ms')
+    
+    s1.cmdPrint('tc qdisc del dev s1-eth6 root')
+    s1.cmdPrint('tc qdisc add dev s1-eth6 root handle 10: netem delay 200ms')
+    s4.cmdPrint('tc qdisc del dev s4-eth1 root')
+    s4.cmdPrint('tc qdisc add dev s4-eth1 root handle 10: netem delay 200ms')
+
+    time.sleep(10)
+    s1.cmdPrint('tc qdisc del dev s1-eth4 root')
+    s1.cmdPrint('tc qdisc add dev s1-eth4 root handle 10: netem delay 200ms')
+    s2.cmdPrint('tc qdisc del dev s2-eth1 root')
+    s2.cmdPrint('tc qdisc add dev s2-eth1 root handle 10: netem delay 200ms')
+
+    s1.cmdPrint('tc qdisc del dev s1-eth5 root')
+    s1.cmdPrint('tc qdisc add dev s1-eth5 root handle 10: netem delay 50ms')
+    s3.cmdPrint('tc qdisc del dev s1-eth1 root')
+    s3.cmdPrint('tc qdisc add dev s3-eth1 root handle 10: netem delay 50ms')
+    
+    s1.cmdPrint('tc qdisc del dev s1-eth6 root')
+    s1.cmdPrint('tc qdisc add dev s1-eth6 root handle 10: netem delay 10ms')
+    s4.cmdPrint('tc qdisc del dev s4-eth1 root')
+    s4.cmdPrint('tc qdisc add dev s4-eth1 root handle 10: netem delay 10ms')
+
     CLI(net) # launch simple Mininet CLI terminal window
     
     net.stop()
