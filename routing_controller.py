@@ -6,6 +6,8 @@
 #    - then the routing for (h1-h4) pair in switch s1 is changed every one second in a round-robin manner to load balance the traffic through switches s3, s4, s2.
 
 
+from json import load
+from turtle import pos
 from pox.core import core
 import pox.openflow.libopenflow_01 as of
 from pox.lib.util import dpidToStr
@@ -118,19 +120,22 @@ class Intent():
     return msg
 
 # poprawic od hostow
-intent1 = Intent("h1", "h4", 300, 100)
-intent2 = Intent("h1", "h6", 90, 100)
-intent3 = Intent("h1", "h4", 63, 100)
-intent4 = Intent("h1", "h5", 30, 100)
-intents = [intent1, intent2, intent3, intent4]
-
+intent1 = Intent("h3", "10.0.0.6", 300, 100)
+intent2 = Intent("h1", "10.0.0.4", 90, 1)
+intent3 = Intent("h1", "10.0.0.5", 63, 169)
+intent4 = Intent("h3", "10.0.0.6", 80, 10)
+intent5 = Intent("h1", "10.0.0.5", 120, 170)
+intent6 = Intent("h3", "10.0.0.4", 263, 100)
+intent7 = Intent("h2", "10.0.0.5", 16, 121)
+intent8 = Intent("h2", "10.0.0.6", 8, 280)
+intents = [intent1, intent2, intent3, intent4, intent5, intent6, intent7, intent8 ]
 
 
 class RoutingController():
   def __init__(self):
     self.intents = []
     self.links_state = self.get_state_of_links() # dict "link_name" : [delay,packet_receives]
-    self.number_of_flows = [0, 0, 0] # s2, s3, s4
+    # self.number_of_flows = {"s2": 0, "s3": 0, "s4": 0} # s2, s3, s4
     #self.routing_table = {}
 
   def sort(self):
@@ -139,35 +144,72 @@ class RoutingController():
 
   def get_state_of_links(self):
     self.links_state = {
-    "s4": s1s4_delay,
-    "s2": s1s2_delay,#  s1_p4-pre_s1_p4],
-    "s3": s1s3_delay,#  s1_p5-pre_s1_p5],
-     #"s4": s1s4_delay # s1_p6-pre_s1_p6]
+    "s2": s1s2_delay,
+    "s3": s1s3_delay,
+    "s4": s1s4_delay
     }
   
   def update(self):
-    self.get_state_of_links()    
-    self.routing()
     print "[RoutingController] routing controller updated links info"
+    self.get_state_of_links()
+    print "\n[RoutingController] Print delay between from s1 to: {}\n".format(routingController.links_state)
+    self.routing()
+    
+
   
   def routing(self):
+    number_of_flows = {"s2": 0, "s3": 0, "s4": 0}
+    loads_of_links = {"s2": 0, "s3": 0, "s4": 0}
     for intent in intents:
       possible_flows = []
       for _, (name_switch, delay) in enumerate(self.links_state.items()):
         if int(intent.delay) > delay:
           possible_flows.append(name_switch)
-      print intent.source_host, intent.destination_host, intent.delay, possible_flows
-  def msg(self, dest_address, port):
-    # flow_table ={'s2': 5, 's3': 6, 's4':  }
+      result = "[INTENT] src: {}, dst: {}, require_delay: {}, possible_flows: {}".format(intent.source_host, intent.destination_host, intent.delay, possible_flows)
+      if len(possible_flows) == 0:
+        result = result + " routing without QoS! "
+        possible_flows = ["s2", "s3", "s4"]
+      flow = self.argmin(possible_flows, number_of_flows, loads_of_links)
+      result = result + " send by: {}".format(flow)
+      number_of_flows[flow] = number_of_flows[flow] + 1
+      loads_of_links[flow] = loads_of_links[flow] + intent.capacity
+      self.msg(intent.source_host, intent.destination_host, intent.capacity, flow)    
+      print result
+
+
+    print "[RoutingController] Flow allocation {}".format(number_of_flows)
+    print "[RoutingController] Load allocation {}".format(loads_of_links)
+
+
+  def argmin(self, possible_flows, number_of_flows, loads_of_links):
+    min = number_of_flows[possible_flows[0]]
+    min_id = possible_flows[0]
+    for flow in possible_flows[1:]:
+      if number_of_flows[flow] < min: 
+          min = number_of_flows[flow]
+          min_id = flow
+      # checking load balancking
+      if number_of_flows[flow] == min:
+        if loads_of_links[flow] < loads_of_links[min_id]:
+          min = number_of_flows[flow]
+          min_id = flow
+    return min_id
+
+
+  def msg(self, source_host, destination_host, capacity, switch):
+    flow_table ={'s2': 5, 's3': 6, 's4': 4}
+    src_hosts = {'h1': s1_dpid, 'h2': s2_dpid, 'h3': s3_dpid}
+    core.openflow.getConnection(src_hosts[source_host]).send(of.ofp_stats_request(body=of.ofp_port_stats_request()))
     msg = of.ofp_flow_mod()
     msg.command=of.OFPFC_MODIFY_STRICT
     msg.priority =100
     msg.idle_timeout = 0
     msg.hard_timeout = 0
     msg.match.dl_type = 0x0800
-    msg.match.nw_dst = dest_address
-    msg.actions.append(of.ofp_action_output(port = port))
-    core.openflow.getConnection(s1_dpid).send(msg)
+    msg.match.nw_dst = destination_host
+    msg.actions.append(of.ofp_action_output(port = int(flow_table[switch])))
+    core.openflow.getConnection(src_hosts[source_host]).send(msg)
+    
 
 routingController = RoutingController()
 routingController.intents = intents
@@ -203,7 +245,7 @@ def getTheTime():  #function to create a timestamp
  
  
 def _timer_func ():
-  global s1_dpid, s2_dpid, s3_dpid, s4_dpid, s5_dpid,turn
+  global s1_dpid, s2_dpid, s3_dpid, s4_dpid, s5_dpid
   core.openflow.getConnection(s1_dpid).send(of.ofp_stats_request(body=of.ofp_port_stats_request()))
   core.openflow.getConnection(s2_dpid).send(of.ofp_stats_request(body=of.ofp_port_stats_request()))
   core.openflow.getConnection(s3_dpid).send(of.ofp_stats_request(body=of.ofp_port_stats_request()))
@@ -226,9 +268,9 @@ def _timer_func ():
   msg.actions.append(of.ofp_action_output(port = 5))
   core.openflow.getConnection(s1_dpid).send(msg)
   
-  # testy
+  # testy routingController
   routingController.update()
-  print(routingController.links_state)
+  
 
   # This function is called periodically to send measurement-oriented messages to the switches.
   global s1s2_start_time, s1s2_sent_time1, s1s2_sent_time2, s1s2_src_dpid, s1s2_dst_dpid
